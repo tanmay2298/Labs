@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+
 int main()
 {
 	char kw[8][100] = {"int", "float", "break", "for", "continue", "if", "else", "FILE"};
@@ -20,7 +20,7 @@ int main()
 	{
 		c1 = getc(f1);
 		char buf[10];
-		flag = j = 0;
+		flag = 0;
 		while(isalpha(c1))
 		{
 			buf[j++] = c1;
@@ -28,7 +28,6 @@ int main()
 			c1 = getc(f1);
 			flag = 1;
 		}
-		buf[j] = '\0';
 		
 		if(flag == 1)
 		{
@@ -36,7 +35,7 @@ int main()
 			{
 				if(strcmp(buf, kw[i]) == 0)
 				{
-					printf("Line = %d\tCol = %d\t", line, col);
+					printf("Line = %d\tCol = %d", line, col);
 					k = 0;
 					while(buf[k] != '\0')
 						putchar(toupper(buf[k++]));
@@ -50,8 +49,7 @@ int main()
 			line++;
 			col = 1;
 		}
-		else if(c1 == ' ')
-			col++;
+		
 	}while(c1 != EOF);
 	fclose(f1);
 	return 0;
