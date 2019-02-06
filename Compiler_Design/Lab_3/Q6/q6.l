@@ -1,101 +1,188 @@
 %{
-	#include<stdio.h>
-	#include<stdlib.h>
-	#include<string.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
 	#define YY_DECL struct token *yylex(void)
-	enum tokenType {EOFILE = -1, LESS_THAN, LESS_THAN_OR_EQUAL, GREATER_THAN, GREATER_THAN_OR_EQUAL, EQUAL, NOT_EQUAL};
+
 	struct token
 	{
-		char *lexeme;
+		char lexeme[100];
 		int index;
 		int rowno, colno;
-		enum tokenType type;
+		char type[100];
 	};
 	int lineno = 1, colno = 1;
+
 	struct token *tk;
 	struct token *allocToken()
 	{
-		
-		tk = (struct token *) malloc(sizeof(struct token));
-		tk -> lexeme = (char *) malloc(sizeof(char) * 3);
-		tk -> index = -1;
-		tk -> type = EOFILE;
+		struct token* tk;
+		tk = (struct token*)malloc(sizeof(struct token));
+		tk->index = -1;
 		return tk;
 	}
-	void setTokenArgs(struct token *tk, char *lexeme, int index, int rowno, int colno, enum tokenType type)
+
+	void tkSet(struct token* tk, char lexeme[100], int index, int rowno, int colno, char type[100])
 	{
 		if(tk == NULL)
 			return;
-		strcpy(tk -> lexeme, lexeme);
-		tk -> index = index;
-		tk -> rowno = rowno;
-		tk -> colno = colno;
-		tk -> type = type;
+		strcpy(tk->lexeme, lexeme);
+		tk->index = index;
+		tk->rowno = rowno;
+		tk->colno = colno;
+		strcpy(tk->type, type);
 	}
+
 %}
-
 %%
-"/*".*"*/" {int i = 0;
-				while(yytext[i] != '\0')
-				{
-				if(yytext[i] == '\n')
-				{
-					lineno++;
-					colno = 1;
-				}
-				else
-					colno++;
-				i++;
-				}}
+
+"/*"(.(\n?))*"*/" {
+	int i = 0;
+	while(yytext[i] != '\0')
+	{
+		if(yytext[i] == '\n')
+		{
+			lineno++;
+			colno = 1;
+		}
+		else
+			colno++;
+		i++;
+	}
+}
+
+"#include".*"\n" {lineno++; colno = 1;}
+"#define".*"\n" {lineno++; colno = 1;}
+
 "//".*"\n" {lineno++; colno = 1;}
-(\"(.)*\") {colno += strlen(yytext);}
-(\'(.)\') {colno += strlen(yytext);}
-\n {lineno++; colno = 1;}
 
-"<" {tk = allocToken();
-		setTokenArgs(tk, yytext, -1, lineno, colno, LESS_THAN);
-		colno++;
-		return tk;}
-
-"<=" {tk = allocToken();
-setTokenArgs(tk, yytext, -1, lineno, colno, LESS_THAN_OR_EQUAL);
-colno += 2;
-return tk;}
-
-"==" {
+(\"(.)*\") {
 	tk = allocToken();
-	setTokenArgs(tk, yytext, -1, lineno, colno, EQUAL);
-	colno += 2;
+	char type[100] = "LITERAL";
+	tkSet(tk, "", -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;
+}
+
+(\'(.)\') {
+	tk = allocToken();
+	char type[100] = "LITERAL";
+	tkSet(tk, "", -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;
+}
+
+\n {lineno++; colno = 1;}
+\t {colno += 4;}
+
+("="|"<"|">")"="? {
+	tk = allocToken();
+	char type[100] = "RELATIONAL";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
 	return tk;
 }
 
 "!=" {
 	tk = allocToken();
-	setTokenArgs(tk, yytext, -1, lineno, colno, NOT_EQUAL);
-	colno += 2;
+	char type[100] = "RELATIONAL";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
 	return tk;
 }
 
-"\t" {
-	colno += 8;
+("+"|"-"|"*"|"/")^("+"|"-"|"*"|"/") {
+	tk = allocToken();
+	char type[100] = "ARITHMETIC";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;
 }
 
-. {colno++;}
+("&"&?|"|"\|?) {
+	tk = allocToken();
+	char type[100] = "LOGICAL";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;
+}
+
+("++"|"--"|"&"|"~") {
+	tk = allocToken();
+	char type[100] = "UNARY";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;
+}
+
+("+="|"-="|"*="|"\=") {
+	tk = allocToken();
+	char type[100] = "SHORTHAND";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;
+}
+
+(-0*[1-9][0-9]*)|(\+?0*[1-9][0-9]*)|(-0*[1-9][0-9]*\.[0-9]+)|(\+?0*[1-9][0-9]*\.[0-9]+) {
+	tk = allocToken();
+	char type[100] = "NUMERICAL";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;	
+}
+
+(","|"{"|"}"|";"|"("|")"|"["|"]") {
+	tk = allocToken();
+	char type[100] = "SPECIAL CHARACTER";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;	
+}
+
+[^a-zA-Z0-9_]"int"|"char"|"return"|"for"|"if"|"else"[^a-zA-Z0-9_] {
+	tk = allocToken();
+	char type[100] = "KEYWORD";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;		
+}
+[a-zA-Z_][a-zA-Z_0-9]* {
+	tk = allocToken();
+	char type[100] = "IDENTIFIER";
+	tkSet(tk, yytext, -1, lineno, colno, type);
+	colno += strlen(yytext);
+	return tk;	
+}
 
 %%
 
+void getNextToken()
+{
+	while(tk == yylex())
+	{
+		printf("< %s, %d, %d, %s >", tk->lexeme, tk->rowno, tk->colno, tk->type);
+		return;
+	}
+}
+
 int main()
 {
-	
-	int cnt = 0,yyin;
 	yyin = fopen("input.c", "r");
-	while((tk = yylex()))
+	yyout = fopen("output.c", "w");
+
+	while(1)
 	{
-		printf("%d %d %d %s\n", cnt, tk -> rowno, tk -> colno, tk -> lexeme);
-		cnt++;
+		printf("1) GetNextToken\t2) Exit\n");
+		int ch;
+		scanf("%d", &ch);
+
+		if(ch == 1)
+			getNextToken();
+		else
+			break;
 	}
-	return 0;
 }
+
 int yywrap()
 {
 	return 1;
