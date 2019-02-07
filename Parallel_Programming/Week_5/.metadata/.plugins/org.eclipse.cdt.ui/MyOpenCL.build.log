@@ -1,33 +1,6 @@
-16:27:09 **** Incremental Build of configuration Debug for project MyOpenCL ****
+14:01:04 **** Incremental Build of configuration Debug for project MyOpenCL ****
 make all 
-Building file: ../myVecAdd.c
-Invoking: GCC C Compiler
-gcc -I/usr/include -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"myVecAdd.d" -MT"myVecAdd.d" -o "myVecAdd.o" "../myVecAdd.c"
-../myVecAdd.c: In function ‘main’:
-../myVecAdd.c:54:2: warning: ‘clCreateCommandQueue’ is deprecated [-Wdeprecated-declarations]
-  cl_command_queue command_queue = clCreateCommandQueue(context, device_id, NULL, &ret);
-  ^
-In file included from ../myVecAdd.c:2:0:
-/usr/include/CL/cl.h:1359:1: note: declared here
- clCreateCommandQueue(cl_context                     /* context */,
- ^
-../myVecAdd.c:54:76: warning: passing argument 3 of ‘clCreateCommandQueue’ makes integer from pointer without a cast [-Wint-conversion]
-  cl_command_queue command_queue = clCreateCommandQueue(context, device_id, NULL, &ret);
-                                                                            ^
-In file included from ../myVecAdd.c:2:0:
-/usr/include/CL/cl.h:1359:1: note: expected ‘cl_command_queue_properties {aka long unsigned int}’ but argument is of type ‘void *’
- clCreateCommandQueue(cl_context                     /* context */,
- ^
-../myVecAdd.c:77:11: warning: unused variable ‘event’ [-Wunused-variable]
-  cl_event event;
-           ^
-Finished building: ../myVecAdd.c
- 
-Building target: MyOpenCL
-Invoking: GCC C Linker
-gcc -L/usr/lib/x86_64-linux-gnu -o "MyOpenCL"  ./myVecAdd.o   -lOpenCL
-Finished building target: MyOpenCL
- 
+make: Nothing to be done for 'all'.
 
-16:27:09 Build Finished (took 284ms)
+14:01:04 Build Finished (took 121ms)
 
