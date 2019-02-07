@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <time.h>
+#include <CL/cl.h>
+#include <string.h>
+#include <stdlib.h>
+#include <conio.h>
+#define MAX_SOURCE_SIZE (0x100000)
+
+int main()
+{
+	time_t start, end;
+	start = clock();
+
+	char tempstr[20486];
+
+	// Initialise the input string
+	int i;
+	for(i = 0; i < 20485; i++)
+		tempstr[i] = 'A';
+	tempstr[20485] = '\0';
+
+	int len = strlen(tempstr);
+	len++;
+
+	char *str = (char *)malloc(sizeof(char) * len);
+
+	strcpy(str, tempstr);
+
+	// Load the kernel source code into the array source_str
+	FILE *fp;
+	char *source_str;
+	size_t source_size;
+
+	fp = fopen("strtoggle.cl", "r");
+
+	if(!fp)
+	{
+		printf("Failed to load kernel\n");
+		getchar();
+		exit(1);
+	}
+	source_str
+
+}
