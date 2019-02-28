@@ -1,13 +1,7 @@
-__kernel void repeat(__global char *A, __global char *B, __global int N){
-	int i = get_global_id(0);
-	
-	if(N > 0)
-	{
-		for(int k = 0; k < N; k++)
-		{
-			B[i + k * strlen(A)] = A[i];
-		}	
-	} 
-	N--;
-	
+__kernel void multiply (__global char *S, int n, int len, __global char *RS) {
+	size_t id = get_global_id(0);
+	int i;
+	for (i = id; i < len * n; i += len) {
+		RS[i] = S[id];
+	}
 }
