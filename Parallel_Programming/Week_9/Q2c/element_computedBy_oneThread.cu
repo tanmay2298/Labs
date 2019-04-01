@@ -1,13 +1,15 @@
 #include <stdio.h>
+#include <stdlib.h>
 #define N 3
 #define M 2
-__global__ void add(int *a, int *b, int *c)
-{
-	int tid = threadIdx.x;
 
-//	if(tid < N)
-	for(int i = 0; i < N; i++)
-		c[tid * N + i] = a[tid * N + i] + b[tid * N + i];
+__global__ void add(int *A, int *B, int *C)
+{
+//    int bid = blockIdx.x;
+    int tid = threadIdx.x;
+    
+    printf("(%d)", tid);
+    C[tid] = A[tid] + B[tid];    
 }
 
 int main()
@@ -29,24 +31,26 @@ int main()
 	cudaMalloc((void**)&d_a, size);
 	cudaMalloc((void**)&d_b, size);
 	cudaMalloc((void**)&d_c, size);
-
+  
+  int t = 1;
 	// Setup input values
 	printf("Enter values for a: ");
 	for(int i = 0; i < M; i++)
 		for(int j = 0; j < N; j++)
-			scanf("%d", &a[i * N + j]);
-
+      a[i * N + j] = t++;
+  
+  t = 1;
 	printf("Enter values for b: ");
 	for(int i = 0; i < M; i++)
 		for(int j = 0; j < N; j++)
-			scanf("%d", &b[i * N + j]);
+      b[i * N + j] = t++;
 
 	// Copy inputs to device
 	cudaMemcpy(d_a, &a, size, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_b, &b, size, cudaMemcpyHostToDevice);
 
 	// Launch add() kernel on GPU
-	add<<<1, N>>>(d_a, d_b, d_c);
+	add<<<1, M*N>>>(d_a, d_b, d_c);
 
 	// Copy result back to host
 	cudaMemcpy(&c, d_c, size, cudaMemcpyDeviceToHost);
@@ -55,7 +59,10 @@ int main()
 	for(int i = 0; i < M; i++)
 	{
 		for(int j = 0; j < N; j++)
-			printf("%d + %d = %d\n", a[i * N + j], b[i * N + j], c[i * N + j]);
+			{
+          printf("%d + %d = %d\n", a[i * N + j], b[i * N + j], c[i * N + j]);
+      }
+      
 	}
 
 	// Cleanup
